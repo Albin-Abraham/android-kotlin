@@ -1,10 +1,8 @@
 package com.example.myapp.navigation
 
-
 sealed class Screen(val route: String) {
-    object Splash : Screen("splash")
-    object Login : Screen("login")
-    object Home : Screen("home")
-    object SignUp : Screen("signup")
-    object ForgotPassword : Screen("forgot_password")
+    data object Login : Screen("login")
+    data object SignUp : Screen("signup")
+    data object ForgotPassword : Screen("forgot_password")
+    data object Home : Screen("home")
 }

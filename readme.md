@@ -1,73 +1,92 @@
-# Android Kotlin Project
+# Android Kotlin - Material 3 & Clean Architecture
 
-## Table of Contents
-- [About](#about)
-- [Features](#features)
-- [Screenshots](#screenshots)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Technologies & Architecture](#technologies--architecture)
-- [Contributing](#contributing)
-- [License](#license)
+A modern Android application built with **Kotlin 2.0**, **Jetpack Compose (Material 3)**, **Clean Architecture + DDD-lite**, **Config-Driven UI Forms**, and the **DetailSlots Pattern**.
 
 ---
 
-## About
-This Android project is built using **modern Kotlin practices** and follows recommended **Android architecture patterns** to ensure scalability, maintainability, and testability.
+## 🏛️ Architecture & Project Structure
 
-### Key Concepts and Architecture
+The project strictly follows **Clean Architecture**, **SOLID Principles**, and **Material Design 3 Expressive Tiering**:
 
-#### MVVM (Model-View-ViewModel)
-- **Model:** Handles the data layer (API calls, local database).
-- **View:** UI layer (Activities, Fragments, or Compose UI) that observes ViewModel data.
-- **ViewModel:** Provides data to the UI and handles business logic, exposing state via **LiveData** or **StateFlow**.
-
-#### Repository Pattern
-- Acts as a single source of truth for data.
-- Abstracts the data sources (network, database) from the rest of the app.
-- Allows easy switching between remote and local data.
-
-#### Jetpack Components
-- **LiveData / StateFlow:** Observable data holder for reactive UI updates.
-- **Room:** Local database for persistent storage.
-- **Navigation Component:** Simplifies navigation and argument passing between screens.
-- **WorkManager:** Handles background tasks efficiently.
-
-#### Kotlin Coroutines
-- Handles asynchronous operations (network, database, heavy computations) without blocking the main thread.
-- 
----
-#### Clean & Modular Project Structure
-| Folder | Description |
-|--------|-------------|
-| `data` | Repositories, models, DAO (handles data sources and database interactions) |
-| `domain` | Use-cases and business logic |
-| `ui` | Activities, Fragments, Compose components (UI layer) |
-| `utils` | Helpers, constants, and extension functions |
-| `di` | Dependency Injection setup (Hilt/Koin) |
-
----
-
----
-
-## Features
-- User authentication (login/signup)
-- Network requests with Retrofit
-- Local data storage with Room
-- MVVM architecture
-- Jetpack Compose UI (or XML layouts)
-- Dark mode support
-
----
-
-## Installation
-1. Clone the repository:
-```bash
-git clone https://github.com/Albin-Abraham/android-kotlin.git
-Open the project in Android Studio.
-
-Sync Gradle and build the project.
-
-Run the app on an emulator or a physical device.
 ```
+com.example.myapp/
+│
+├── core/                                    # Shared Core Infrastructure & Frameworks
+│   ├── domain/                              # Pure Domain Layer (Zero Android/UI dependencies)
+│   │   ├── validation/                      # Reusable Strategy-based Field Validators
+│   │   │   ├── FieldValidator.kt            # Strategy interface (ISP / LSP)
+│   │   │   └── Validators.kt                # Required, MinLength, Email implementations
+│   │   └── form/                            # Declarative Schema Descriptors
+│   │       └── FormFieldDescriptor.kt       # Polymorphic field types (Text, Number, Toggle, Selection)
+│   │
+│   └── ui/                                  # Design System & UI Composition Engines
+│       ├── theme/                           # Material 3 Tonal Color Scheme & Typography
+│       │   ├── Color.kt                     # Light & Dark tonal palettes
+│       │   ├── Type.kt                      # M3 Typography tokens
+│       │   ├── Shape.kt                     # M3 Shape tokens
+│       │   └── Theme.kt                     # Dynamic color + M3 Surface Container support
+│       ├── surface/                         # M3 Surface Management
+│       │   └── SurfaceManager.kt            # 5-tier Surface container elevation manager
+│       ├── layouts/                         # Layout & Alignment Engine
+│       │   ├── DetailSlotsScaffold.kt       # Slot-based template (Template Method Pattern)
+│       │   └── AdaptiveLayout.kt            # Responsive multi-pane & orientation layouts
+│       └── components/                      # Reusable UI Primitives
+│           ├── form/
+│           │   └── DynamicForm.kt           # Config-driven M3 Form renderer (Factory Pattern)
+│           └── common/
+│               └── AppButton.kt             # Material 3 Button with built-in loading states
+│
+├── features/                                # Feature Modules (Vertical Slices / DDD-lite)
+│   ├── auth/                                # Authentication Feature
+│   │   ├── domain/
+│   │   │   ├── model/                       # Domain Entities & Value Objects (User, AuthCredentials)
+│   │   │   ├── repository/                  # Domain Repository Interfaces (AuthRepository)
+│   │   │   └── usecase/                     # Use Cases (LoginUseCase)
+│   │   ├── data/
+│   │   │   └── repository/                  # Repository Implementations (AuthRepositoryImpl)
+│   │   └── presentation/                    # Compose UI, Contracts & Coordinators
+│   │       ├── AuthContract.kt              # Immutable UI State & Intent definitions
+│   │       ├── AuthViewModel.kt             # Controller / Intent Dispatcher & Schema Configs
+│   │       ├── LoginScreen.kt               # Sign In screen (DetailSlots + DynamicForm)
+│   │       ├── SignUpScreen.kt              # Sign Up screen (DetailSlots + DynamicForm)
+│   │       └── ForgotPasswordScreen.kt      # Password recovery screen
+│   │
+│   └── home/                                # Home & Dashboard Feature
+│       └── presentation/
+│           ├── HomeScreen.kt                # M3 Expressive Dashboard with Surface Container Tiers
+│           └── SplashScreen.kt              # Material 3 Splash Transition
+│
+├── navigation/                              # App Routing & Navigation
+│   ├── Screen.kt                            # Sealed class route definitions
+│   └── NavGraph.kt                          # Centralized NavHost registering all feature destinations
+│
+└── MainActivity.kt                          # Single-Activity entry point with edge-to-edge support
+```
+
 ---
+
+## 💎 Key Design Patterns & Engineering Highlights
+
+### 1. Config-Driven Forms
+Forms are defined as pure domain schemas (`FormFieldDescriptor`) and rendered automatically via `DynamicForm`. Adding a new field requires zero boilerplate in UI screens.
+
+### 2. DetailSlots Pattern
+`DetailSlotsScaffold` provides standardized, accessible screen scaffolding (`headerSlot`, `mediaSlot`, `keyDetailsSlot`, `actionSlot`) across all app features, ensuring consistent handling of window insets (`innerPadding`, `imePadding`, `navigationBarsPadding`).
+
+### 3. Material 3 Surface Manager
+Enforces the 5-tier Material 3 surface container model (`LOWEST`, `LOW`, `BASE`, `HIGH`, `HIGHEST`) with dynamic theme switching and tonal depth.
+
+### 4. SOLID & GoF Patterns Enforced
+- **Single Responsibility (SRP)**: Domain entities enforce invariants; ViewModels orchestrate use cases; Composables only render UI.
+- **Open/Closed (OCP)**: New field types and slot components can be added without modifying existing code.
+- **Strategy Pattern**: `FieldValidator` strategies (`required`, `email`, `minLength`).
+- **Template Method / Slot Pattern**: `DetailSlotsScaffold` standardizing screen flow.
+- **Command / Intent Pattern**: `AuthIntent` for unidirectional data flow (UDF).
+
+---
+
+## 🧪 Testing
+
+Domain rules, validators, and use cases are isolated with 100% unit test coverage in `app/src/test/java/`:
+- `ValidatorsTest.kt` — Tests validation strategies for null, blank, length, and regex rules.
+- `LoginUseCaseTest.kt` — Tests business logic invariants without framework mocks.
