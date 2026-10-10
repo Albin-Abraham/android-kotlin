@@ -7,7 +7,9 @@ import com.example.myapp.core.domain.util.UiText
  * Follows GoF Strategy Pattern & SOLID Single Responsibility.
  */
 fun interface ValidationRule<T> {
-    fun validate(value: T, allValues: Map<String, Any?> = emptyMap()): ValidationResult
+    fun validate(value: T, allValues: Map<String, Any?>): ValidationResult
+
+    fun validate(value: T): ValidationResult = validate(value, emptyMap())
 
     infix fun and(other: ValidationRule<T>): ValidationRule<T> = ValidationRule { value, allValues ->
         val firstResult = this.validate(value, allValues)

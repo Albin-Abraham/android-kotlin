@@ -189,6 +189,51 @@ fun DynamicForm(
                     }
                 }
 
+                is FormFieldDescriptor.Checkbox -> {
+                    val isChecked = (formValues[field.key] as? Boolean) ?: false
+                    val error = fieldErrors[field.key]
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = spacing.extraSmall),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = isChecked,
+                                onCheckedChange = { onFieldValueChange(field.key, it) },
+                                colors = CheckboxDefaults.colors(
+                                    checkedColor = MaterialTheme.colorScheme.primary,
+                                    uncheckedColor = MaterialTheme.colorScheme.outline
+                                )
+                            )
+                            Spacer(modifier = Modifier.width(spacing.extraSmall))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = field.label,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                field.description?.let { desc ->
+                                    Text(
+                                        text = desc,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                        if (error != null) {
+                            Text(
+                                text = error,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.padding(start = 36.dp)
+                            )
+                        }
+                    }
+                }
+
                 is FormFieldDescriptor.Selection -> {
                     var expanded by remember { mutableStateOf(false) }
                     val selectedOption = (formValues[field.key] as? String).orEmpty()

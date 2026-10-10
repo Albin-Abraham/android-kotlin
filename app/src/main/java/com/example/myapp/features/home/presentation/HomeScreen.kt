@@ -1,34 +1,64 @@
 package com.example.myapp.features.home.presentation
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.Hub
+import androidx.compose.material.icons.filled.Layers
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.myapp.core.ui.layouts.AppBottomBar
+import com.example.myapp.core.ui.layouts.AppColumn
+import com.example.myapp.core.ui.layouts.AppRow
 import com.example.myapp.core.ui.layouts.AppScaffold
 import com.example.myapp.core.ui.layouts.AppTopBar
 import com.example.myapp.core.ui.layouts.BottomNavItem
+import com.example.myapp.core.ui.layouts.rememberBottomBarScrollBehavior
+import com.example.myapp.core.ui.motion.bounceClick
+import com.example.myapp.core.ui.network.LiveNetworkMonitor
+import com.example.myapp.core.ui.network.OfflineSyncBanner
 import com.example.myapp.core.ui.surface.AppSurface
 import com.example.myapp.core.ui.surface.SurfaceTier
 import com.example.myapp.core.ui.theme.spacing
 
 /**
- * Production-ready Dashboard screen with foundational design token compliance.
+ * Production-ready Enterprise Dashboard screen.
+ * Features auto-hiding scroll-aware bottom navigation, tactile bounce micro-interactions,
+ * offline awareness, and token-aware layout primitives.
  */
 @Composable
 fun HomeScreen(
     onSignOut: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     val spacing = MaterialTheme.spacing
     var currentTab by remember { mutableStateOf("dashboard") }
+    val scrollBehavior = rememberBottomBarScrollBehavior()
+
+    val networkMonitor = remember { LiveNetworkMonitor(context) }
+    val isOnline by networkMonitor.isOnline.collectAsState(initial = true)
 
     val navItems = listOf(
         BottomNavItem(
@@ -54,13 +84,18 @@ fun HomeScreen(
                 title = when (currentTab) {
                     "profile" -> "My Profile"
                     "settings" -> "Settings"
-                    else -> "Dashboard"
+                    else -> "Enterprise Dashboard"
                 },
                 actions = {
-                    IconButton(onClick = onSignOut) {
+                    IconButton(
+                        onClick = onSignOut,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .semantics { contentDescription = "Sign out of account" }
+                    ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                            contentDescription = "Sign Out",
+                            contentDescription = null,
                             tint = MaterialTheme.colorScheme.error
                         )
                     }
@@ -71,119 +106,257 @@ fun HomeScreen(
             AppBottomBar(
                 items = navItems,
                 currentRoute = currentTab,
-                onItemClick = { item -> currentTab = item.route }
+                onItemClick = { item -> currentTab = item.route },
+                scrollBehavior = scrollBehavior
             )
         },
+        scrollBehavior = scrollBehavior,
         modifier = modifier
     ) { innerPadding ->
-        Column(
+        AppColumn(
+            spacing = spacing.medium,
+            enableFontOverlayProtection = true,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = spacing.medium, vertical = spacing.medium),
-            verticalArrangement = Arrangement.spacedBy(spacing.medium)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = spacing.medium, vertical = spacing.medium)
         ) {
-            // Welcome Card with M3 High Tier Surface
+            // 0. Animated Offline Sync Alert
+            OfflineSyncBanner(isOnline = isOnline)
+
+            // 1. Welcome & Overview Card (M3 High Tier Surface)
             AppSurface(
                 tier = SurfaceTier.HIGH,
                 shape = MaterialTheme.shapes.extraLarge,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(spacing.large)) {
-                    Text(
-                        text = "Welcome to Material 3",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(modifier = Modifier.height(spacing.extraSmall))
-                    Text(
-                        text = "Unified AppScaffold with standard AppBar and AppBottom navigation.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    AppRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Welcome, Enterprise Admin",
+                                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.height(spacing.extraSmall))
+                            Text(
+                                text = "ZenOS Design System & Clean Architecture",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primaryContainer)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Hub,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
                 }
             }
 
-            // Quick Stats / Tiles Row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(spacing.small)
+            // 2. Metrics & KPI Row with Tactile Bounce Click
+            AppRow(
+                spacing = spacing.small,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                QuickTile(
-                    title = "Features",
-                    subtitle = "3 Modules",
-                    icon = Icons.Default.Dashboard,
+                MetricCard(
+                    title = "Tokens Active",
+                    value = "14 / 14",
+                    icon = Icons.Default.Layers,
                     modifier = Modifier.weight(1f)
                 )
-                QuickTile(
-                    title = "Profile",
-                    subtitle = "Active",
-                    icon = Icons.Default.Person,
+                MetricCard(
+                    title = "Security Score",
+                    value = "100%",
+                    icon = Icons.Default.Security,
+                    modifier = Modifier.weight(1f)
+                )
+                MetricCard(
+                    title = "FPS / P99",
+                    value = "60 fps",
+                    icon = Icons.Default.Speed,
                     modifier = Modifier.weight(1f)
                 )
             }
 
-            // System Status Card
+            // 3. System Health & Architectural Compliance Card
             AppSurface(
                 tier = SurfaceTier.LOW,
                 shape = MaterialTheme.shapes.large,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Row(
+                AppRow(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(spacing.medium),
-                    verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column {
                         Text(
-                            text = "Clean Architecture + DDD",
-                            style = MaterialTheme.typography.titleMedium
+                            text = "Clean Architecture + DDD-Lite",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
                         )
+                        Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            text = "SOLID Principles Enforced",
+                            text = "Invariants, Strategy Patterns & SOLID enforced",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    Badge(containerColor = MaterialTheme.colorScheme.primaryContainer) {
-                        Text("Active", color = MaterialTheme.colorScheme.onPrimaryContainer)
+
+                    // Semantic Status Indicator (Icon + Label, not color alone)
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        modifier = Modifier.semantics {
+                            contentDescription = "Architecture Status: Active and Compliant"
+                        }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = spacing.small, vertical = spacing.extraSmall),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Text(
+                                text = "Active",
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
                     }
                 }
+            }
+
+            // 4. Quick Feature Modules
+            Text(
+                text = "Module Quick Access",
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = spacing.extraSmall)
+            )
+
+            AppRow(
+                spacing = spacing.small,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                QuickModuleTile(
+                    title = "Authentication",
+                    subtitle = "MFA & Biometrics",
+                    icon = Icons.Default.Lock,
+                    modifier = Modifier.weight(1f)
+                )
+                QuickModuleTile(
+                    title = "Design Studio",
+                    subtitle = "Token Inspector",
+                    icon = Icons.Default.Layers,
+                    modifier = Modifier.weight(1f)
+                )
             }
         }
     }
 }
 
 @Composable
-private fun QuickTile(
+private fun MetricCard(
+    title: String,
+    value: String,
+    icon: ImageVector,
+    modifier: Modifier = Modifier
+) {
+    val spacing = MaterialTheme.spacing
+    AppSurface(
+        tier = SurfaceTier.LOW,
+        shape = MaterialTheme.shapes.medium,
+        modifier = modifier.bounceClick { /* Opens metric details */ }
+    ) {
+        Column(
+            modifier = Modifier.padding(spacing.small),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(18.dp)
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun QuickModuleTile(
     title: String,
     subtitle: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     modifier: Modifier = Modifier
 ) {
     val spacing = MaterialTheme.spacing
     AppSurface(
         tier = SurfaceTier.LOW,
         shape = MaterialTheme.shapes.large,
-        modifier = modifier
+        modifier = modifier.bounceClick { /* Opens feature module */ }
     ) {
-        Column(
-            modifier = Modifier.padding(spacing.medium),
-            verticalArrangement = Arrangement.spacedBy(spacing.small)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(spacing.medium),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(spacing.small)
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Text(text = title, style = MaterialTheme.typography.titleMedium)
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f))
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold)
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }

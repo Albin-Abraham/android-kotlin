@@ -8,7 +8,10 @@ import com.example.myapp.core.domain.validation.Validators
 import com.example.myapp.features.auth.data.repository.AuthRepositoryImpl
 import com.example.myapp.features.auth.domain.model.AuthCredentials
 import com.example.myapp.features.auth.domain.repository.AuthRepository
+import com.example.myapp.features.auth.domain.usecase.BiometricLoginUseCase
 import com.example.myapp.features.auth.domain.usecase.LoginUseCase
+import com.example.myapp.features.auth.domain.usecase.RegisterUseCase
+import com.example.myapp.features.auth.domain.usecase.RequestPasswordResetUseCase
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,12 +23,23 @@ import kotlinx.coroutines.launch
 
 /**
  * Enterprise ViewModel for Authentication features.
- * Coordinates domain use cases, manages form states, and emits one-time [AuthEffect] events.
+ * Strictly adheres to Clean Architecture & SOLID: orchestrates domain UseCases
+ * without direct repository or framework dependencies.
  */
 class AuthViewModel(
-    private val authRepository: AuthRepository = AuthRepositoryImpl(),
-    private val loginUseCase: LoginUseCase = LoginUseCase(authRepository)
+    private val loginUseCase: LoginUseCase,
+    private val registerUseCase: RegisterUseCase,
+    private val requestPasswordResetUseCase: RequestPasswordResetUseCase,
+    private val biometricLoginUseCase: BiometricLoginUseCase
 ) : ViewModel() {
+
+    // Default constructor for standard ViewModelProvider.Factory / viewModel() invocation
+    constructor(authRepository: AuthRepository = AuthRepositoryImpl()) : this(
+        loginUseCase = LoginUseCase(authRepository),
+        registerUseCase = RegisterUseCase(authRepository),
+        requestPasswordResetUseCase = RequestPasswordResetUseCase(authRepository),
+        biometricLoginUseCase = BiometricLoginUseCase(authRepository)
+    )
 
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
@@ -79,10 +93,10 @@ class AuthViewModel(
             isPassword = true,
             validators = listOf(Validators.required(), Validators.minLength(6))
         ),
-        FormFieldDescriptor.Toggle(
+        FormFieldDescriptor.Checkbox(
             key = "terms",
-            label = "Accept Terms & Conditions",
-            description = "I agree to the privacy policy and terms of service"
+            label = "I agree to the Terms of Service & Privacy Policy",
+            description = "You must accept our terms to create an enterprise account."
         )
     )
 
@@ -168,8 +182,7 @@ class AuthViewModel(
     private fun handleBiometricAuth() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            // Production biometric token authorization handshake
-            loginUseCase(AuthCredentials(username = "user", password = "password"))
+            biometricLoginUseCase()
                 .onSuccess { user ->
                     _uiState.update {
                         it.copy(isLoading = false, authenticatedUser = user, isActionSuccess = true)
@@ -187,30 +200,28 @@ class AuthViewModel(
     private fun handleSignUp() {
         if (!validateSchema(signUpSchema)) return
 
-        val terms = (_uiState.value.formValues["terms"] as? Boolean) ?: false
-        if (!terms) {
-            _uiState.update { it.copy(errorMessage = "Please accept the Terms & Conditions") }
-            return
-        }
-
         val username = (_uiState.value.formValues["username"] as? String).orEmpty()
         val email = (_uiState.value.formValues["email"] as? String).orEmpty()
         val password = (_uiState.value.formValues["password"] as? String).orEmpty()
+        val acceptedTerms = (_uiState.value.formValues["terms"] as? Boolean) ?: false
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            authRepository.register(username, email, password)
-                .onSuccess { user ->
-                    _uiState.update {
-                        it.copy(isLoading = false, authenticatedUser = user, isActionSuccess = true)
-                    }
-                    _effects.send(AuthEffect.NavigateToHome(user))
+            registerUseCase(
+                username = username,
+                email = email,
+                password = password,
+                acceptedTerms = acceptedTerms
+            ).onSuccess { user ->
+                _uiState.update {
+                    it.copy(isLoading = false, authenticatedUser = user, isActionSuccess = true)
                 }
-                .onFailure { error ->
-                    _uiState.update {
-                        it.copy(isLoading = false, errorMessage = error.message ?: "Registration failed")
-                    }
+                _effects.send(AuthEffect.NavigateToHome(user))
+            }.onFailure { error ->
+                _uiState.update {
+                    it.copy(isLoading = false, errorMessage = error.message ?: "Registration failed")
                 }
+            }
         }
     }
 
@@ -221,7 +232,7 @@ class AuthViewModel(
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            authRepository.requestPasswordReset(email)
+            requestPasswordResetUseCase(email)
                 .onSuccess {
                     _uiState.update {
                         it.copy(isLoading = false, isActionSuccess = true)

@@ -1,60 +1,79 @@
-# Android Kotlin - Material 3 & Clean Architecture
+# ZenOS Android Platform (Material 3 & Clean Architecture)
 
-A modern Android application built with **Kotlin 2.0**, **Jetpack Compose (Material 3)**, **Clean Architecture + DDD-lite**, **Config-Driven UI Forms**, and the **DetailSlots Pattern**.
+An enterprise-grade Android application platform built with **Kotlin 2.0**, **Jetpack Compose (Material 3)**, **Clean Architecture + DDD-Lite**, **14 Foundational Design Tokens**, **Declarative Navigation**, and **Tactile Micro-Interactions**.
 
 ---
 
-## 🏛️ Architecture & Project Structure
+## 🏛️ Architecture Governance & Documentation Index
 
-The project strictly follows **Clean Architecture**, **SOLID Principles**, and **Material Design 3 Expressive Tiering**:
+For in-depth architectural specifications, lifecycle contracts, and quality verification standards, refer to the platform documentation:
+
+| Document | Description | Target Standard |
+|:---|:---|:---:|
+| 📜 [**`ARCHITECTURE_RULES.md`**](file:///home/albin-abraham-george/Project/android-kotlin/docs/architecture/ARCHITECTURE_RULES.md) | Inward dependency direction, forbidden imports, module isolation, and PR review checklist. | 9.5/10 Enterprise |
+| 🔄 [**`APPLICATION_LIFECYCLE.md`**](file:///home/albin-abraham-george/Project/android-kotlin/docs/architecture/APPLICATION_LIFECYCLE.md) | Cold bootstrap, session recovery, 5-stage tenant context switching protocol, and state ownership. | 9.5/10 Enterprise |
+| 🗺️ [**`NAVIGATION_ARCHITECTURE.md`**](file:///home/albin-abraham-george/Project/android-kotlin/docs/architecture/NAVIGATION_ARCHITECTURE.md) | Typed route contracts (`ZenOsRoute`), asynchronous route guards, deep links, and adaptive multi-pane navigation. | 9.5/10 Enterprise |
+| 🧪 [**`ARCHITECTURE_TESTING.md`**](file:///home/albin-abraham-george/Project/android-kotlin/docs/architecture/ARCHITECTURE_TESTING.md) | ArchUnit automated dependency tests, tenant isolation tests, performance budgets, and ADR index. | 9.5/10 Enterprise |
+
+---
+
+## 📂 Project Structure
 
 ```
 com.example.myapp/
 │
 ├── core/                                    # Shared Core Infrastructure & Frameworks
 │   ├── domain/                              # Pure Domain Layer (Zero Android/UI dependencies)
-│   │   ├── validation/                      # Reusable Strategy-based Field Validators
+│   │   ├── validation/                      # Reusable Strategy-based Field Validators & ValidationEngine
 │   │   │   ├── FieldValidator.kt            # Strategy interface (ISP / LSP)
-│   │   │   └── Validators.kt                # Required, MinLength, Email implementations
+│   │   │   ├── Validators.kt                # Required, MinLength, Email, Regex implementations
+│   │   │   └── ValidationEngine.kt          # Fluent composite validation rule chaining
 │   │   └── form/                            # Declarative Schema Descriptors
-│   │       └── FormFieldDescriptor.kt       # Polymorphic field types (Text, Number, Toggle, Selection)
+│   │       └── FormFieldDescriptor.kt       # Polymorphic field types (Text, Number, Toggle, Checkbox, Selection)
 │   │
 │   └── ui/                                  # Design System & UI Composition Engines
-│       ├── theme/                           # Material 3 Tonal Color Scheme & Typography
+│       ├── theme/                           # 14 Foundational Design Tokens & Constraints
+│       │   ├── DesignTokens.kt              # Spacing, Elevation, Borders, Icons, Alpha, Motion, Breakpoints
+│       │   ├── DesignConstraints.kt         # Responsive layout constraints & density checks
 │       │   ├── Color.kt                     # Light & Dark tonal palettes
 │       │   ├── Type.kt                      # M3 Typography tokens
 │       │   ├── Shape.kt                     # M3 Shape tokens
 │       │   └── Theme.kt                     # Dynamic color + M3 Surface Container support
 │       ├── surface/                         # M3 Surface Management
-│       │   └── SurfaceManager.kt            # 5-tier Surface container elevation manager
-│       ├── layouts/                         # Layout & Alignment Engine
+│       │   └── SurfaceManager.kt            # 5-tier Surface container elevation manager (LOWEST to HIGHEST)
+│       ├── layouts/                         # Layout & Alignment Primitives
+│       │   ├── AppScaffold.kt               # Standardized M3 TopBar & Scroll-aware auto-hide AppBottomBar
+│       │   ├── AppLayoutPrimitives.kt       # Token-aware AppColumn, AppRow, and FontOverlayContainer
 │       │   ├── DetailSlotsScaffold.kt       # Slot-based template (Template Method Pattern)
 │       │   └── AdaptiveLayout.kt            # Responsive multi-pane & orientation layouts
+│       ├── motion/                          # Motion & Physics Micro-Interactions
+│       │   └── TactileModifier.kt           # bounceClick modifier with spring physics and haptics
+│       ├── state/                           # Resilient UI State Containers
+│       │   ├── UiStateRenderer.kt           # Polymorphic Loading/Empty/Error/Success state manager
+│       │   ├── EmptyStateWidget.kt          # Standardized empty state artwork & action callout
+│       │   └── ErrorRetryBanner.kt          # Accessible inline error banner with retry action
+│       ├── network/                         # Connectivity & Offline Sync
+│       │   ├── NetworkMonitor.kt            # Live network connectivity callback flow
+│       │   └── OfflineSyncBanner.kt         # Animated top glide banner for offline state
 │       └── components/                      # Reusable UI Primitives
 │           ├── form/
-│           │   └── DynamicForm.kt           # Config-driven M3 Form renderer (Factory Pattern)
+│           │   └── DynamicForm.kt           # Config-driven M3 Form renderer with autofill & touch targets
 │           └── common/
-│               └── AppButton.kt             # Material 3 Button with built-in loading states
+│               └── AppButton.kt             # Material 3 Button with built-in loading and variant styling
 │
 ├── features/                                # Feature Modules (Vertical Slices / DDD-lite)
-│   ├── auth/                                # Authentication Feature
-│   │   ├── domain/
-│   │   │   ├── model/                       # Domain Entities & Value Objects (User, AuthCredentials)
-│   │   │   ├── repository/                  # Domain Repository Interfaces (AuthRepository)
-│   │   │   └── usecase/                     # Use Cases (LoginUseCase)
-│   │   ├── data/
-│   │   │   └── repository/                  # Repository Implementations (AuthRepositoryImpl)
-│   │   └── presentation/                    # Compose UI, Contracts & Coordinators
-│   │       ├── AuthContract.kt              # Immutable UI State & Intent definitions
-│   │       ├── AuthViewModel.kt             # Controller / Intent Dispatcher & Schema Configs
-│   │       ├── LoginScreen.kt               # Sign In screen (DetailSlots + DynamicForm)
-│   │       ├── SignUpScreen.kt              # Sign Up screen (DetailSlots + DynamicForm)
-│   │       └── ForgotPasswordScreen.kt      # Password recovery screen
+│   ├── auth/                                # Authentication Feature Suite
+│   │   ├── domain/                          # Domain Entities & Value Objects (User, AuthCredentials)
+│   │   ├── data/                            # Repository Implementations (AuthRepositoryImpl)
+│   │   └── presentation/                    # Compose UI, Routes & Subcomponents
+│   │       ├── LoginRoute.kt / LoginScreen.kt
+│   │       ├── SignUpRoute.kt / SignUpScreen.kt
+│   │       ├── ForgotPasswordScreen.kt
+│   │       └── components/                  # AuthCard, AuthHeader, AuthFooter, AuthErrorBanner
 │   │
 │   └── home/                                # Home & Dashboard Feature
 │       └── presentation/
-│           ├── HomeScreen.kt                # M3 Expressive Dashboard with Surface Container Tiers
-│           └── SplashScreen.kt              # Material 3 Splash Transition
+│           └── HomeScreen.kt                # Enterprise Dashboard with KPI metrics & scroll-aware bottom bar
 │
 ├── navigation/                              # App Routing & Navigation
 │   ├── Screen.kt                            # Sealed class route definitions
@@ -65,28 +84,36 @@ com.example.myapp/
 
 ---
 
-## 💎 Key Design Patterns & Engineering Highlights
+## 💎 Key Architectural & UX Capabilities
 
-### 1. Config-Driven Forms
-Forms are defined as pure domain schemas (`FormFieldDescriptor`) and rendered automatically via `DynamicForm`. Adding a new field requires zero boilerplate in UI screens.
+### 1. 14 Foundational Design Token Pillars
+All spacing, elevations, borders, icon sizes, alpha levels, motion timings, and breakpoints are governed centrally in [`DesignTokens.kt`](file:///home/albin-abraham-george/Project/android-kotlin/app/src/main/java/com/example/myapp/core/ui/theme/DesignTokens.kt) and [`DesignConstraints.kt`](file:///home/albin-abraham-george/Project/android-kotlin/app/src/main/java/com/example/myapp/core/ui/theme/DesignConstraints.kt).
 
-### 2. DetailSlots Pattern
-`DetailSlotsScaffold` provides standardized, accessible screen scaffolding (`headerSlot`, `mediaSlot`, `keyDetailsSlot`, `actionSlot`) across all app features, ensuring consistent handling of window insets (`innerPadding`, `imePadding`, `navigationBarsPadding`).
+### 2. Scroll-Based Bottom Navigation Auto-Hide
+[`AppBottomBarScrollBehavior`](file:///home/albin-abraham-george/Project/android-kotlin/app/src/main/java/com/example/myapp/core/ui/layouts/AppScaffold.kt#L30-L65) automatically slides the bottom navigation bar out of view on downward scroll, and smoothly springs it back on upward scroll or boundary reach.
 
-### 3. Material 3 Surface Manager
-Enforces the 5-tier Material 3 surface container model (`LOWEST`, `LOW`, `BASE`, `HIGH`, `HIGHEST`) with dynamic theme switching and tonal depth.
+### 3. Tactile Spring Micro-Interactions
+Interactive elements utilize `.bounceClick()` from [`TactileModifier.kt`](file:///home/albin-abraham-george/Project/android-kotlin/app/src/main/java/com/example/myapp/core/ui/motion/TactileModifier.kt) with realistic spring physics (`Spring.DampingRatioMediumBouncy`) and contextual haptic feedback.
 
-### 4. SOLID & GoF Patterns Enforced
-- **Single Responsibility (SRP)**: Domain entities enforce invariants; ViewModels orchestrate use cases; Composables only render UI.
-- **Open/Closed (OCP)**: New field types and slot components can be added without modifying existing code.
-- **Strategy Pattern**: `FieldValidator` strategies (`required`, `email`, `minLength`).
-- **Template Method / Slot Pattern**: `DetailSlotsScaffold` standardizing screen flow.
-- **Command / Intent Pattern**: `AuthIntent` for unidirectional data flow (UDF).
+### 4. Token-Aware Layout Primitives & Font Contrast Protection
+[`AppColumn`](file:///home/albin-abraham-george/Project/android-kotlin/app/src/main/java/com/example/myapp/core/ui/layouts/AppLayoutPrimitives.kt#L19), [`AppRow`](file:///home/albin-abraham-george/Project/android-kotlin/app/src/main/java/com/example/myapp/core/ui/layouts/AppLayoutPrimitives.kt#L53), and [`FontOverlayContainer`](file:///home/albin-abraham-george/Project/android-kotlin/app/src/main/java/com/example/myapp/core/ui/layouts/AppLayoutPrimitives.kt#L86) ensure automatic token spacing and WCAG AAA contrast ratio preservation across gradients and elevated surfaces.
+
+### 5. Resilient UI State Containers & Offline Awareness
+Polymorphic [`UiStateRenderer`](file:///home/albin-abraham-george/Project/android-kotlin/app/src/main/java/com/example/myapp/core/ui/state/UiStateRenderer.kt) smoothly transitions between `Loading`, `Empty`, `Error`, and `Success` states, while [`OfflineSyncBanner`](file:///home/albin-abraham-george/Project/android-kotlin/app/src/main/java/com/example/myapp/core/ui/network/OfflineSyncBanner.kt) alerts users to connectivity state changes in real time.
 
 ---
 
-## 🧪 Testing
+## ⚡ Developer Automation (`Makefile`)
 
-Domain rules, validators, and use cases are isolated with 100% unit test coverage in `app/src/test/java/`:
-- `ValidatorsTest.kt` — Tests validation strategies for null, blank, length, and regex rules.
-- `LoginUseCaseTest.kt` — Tests business logic invariants without framework mocks.
+A root [`Makefile`](file:///home/albin-abraham-george/Project/android-kotlin/Makefile) is provided for high-speed CLI developer ergonomics:
+
+```bash
+make help       # List all available build and test commands
+make test       # Execute unit test suites (./gradlew testDebugUnitTest)
+make build      # Assemble debug APK (./gradlew assembleDebug)
+make install    # Build and install APK onto connected device / emulator
+make run        # Install and start the main activity on device
+make clean      # Clean Gradle caches and build directories
+make logs       # Stream live logcat filtered for com.example.myapp
+make restart    # Force-stop and restart the application on device
+```

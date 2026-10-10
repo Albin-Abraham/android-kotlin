@@ -7,13 +7,13 @@ import kotlinx.coroutines.delay
 
 /**
  * Data layer implementation of [AuthRepository].
- * Simulates remote network auth and maps data models to domain entities.
+ * Simulates remote network and secure hardware authentication operations.
  */
 class AuthRepositoryImpl : AuthRepository {
 
     override suspend fun login(credentials: AuthCredentials): Result<User> {
-        delay(1000) // Simulate network latency
-        return if (credentials.username == "user" && credentials.password == "password") {
+        delay(600) // Simulate network roundtrip
+        return if (credentials.username.equals("user", ignoreCase = true) && credentials.password == "password") {
             Result.success(
                 User(
                     id = "usr_101",
@@ -28,7 +28,7 @@ class AuthRepositoryImpl : AuthRepository {
     }
 
     override suspend fun register(username: String, email: String, password: String): Result<User> {
-        delay(1000)
+        delay(600)
         return Result.success(
             User(
                 id = "usr_${System.currentTimeMillis()}",
@@ -40,7 +40,19 @@ class AuthRepositoryImpl : AuthRepository {
     }
 
     override suspend fun requestPasswordReset(email: String): Result<Unit> {
-        delay(800)
+        delay(500)
         return Result.success(Unit)
+    }
+
+    override suspend fun authenticateWithBiometrics(): Result<User> {
+        delay(500)
+        return Result.success(
+            User(
+                id = "usr_biometric_101",
+                username = "enterprise_admin",
+                email = "admin@zenos.io",
+                token = "jwt_biometric_token_valid"
+            )
+        )
     }
 }

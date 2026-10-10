@@ -60,4 +60,13 @@ sealed interface FormFieldDescriptor {
         override val isRequired: Boolean = false,
         override val validators: List<FieldValidator> = emptyList()
     ) : FormFieldDescriptor
+
+    data class Checkbox(
+        override val key: String,
+        override val label: String,
+        val description: String? = null,
+        val linkText: String? = null,
+        override val isRequired: Boolean = false,
+        override val validators: List<FieldValidator> = emptyList()
+    ) : FormFieldDescriptor
 }

@@ -5,10 +5,11 @@ import com.example.myapp.features.auth.domain.model.User
 
 /**
  * Domain Repository Interface for Authentication.
- * Inversion of Dependency (SOLID DIP) - Domain defines contract, Data implements it.
+ * Pure Kotlin contract adhering to SOLID Dependency Inversion Principle.
  */
 interface AuthRepository {
     suspend fun login(credentials: AuthCredentials): Result<User>
     suspend fun register(username: String, email: String, password: String): Result<User>
     suspend fun requestPasswordReset(email: String): Result<Unit>
+    suspend fun authenticateWithBiometrics(): Result<User>
 }
