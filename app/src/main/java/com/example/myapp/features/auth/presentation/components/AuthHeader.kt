@@ -35,9 +35,9 @@ import com.example.myapp.core.ui.theme.spacing
 fun AuthHeader(
     title: String,
     subtitle: String,
+    modifier: Modifier = Modifier,
     icon: ImageVector = Icons.Default.Lock,
-    iconContentDescription: String? = null,
-    modifier: Modifier = Modifier
+    iconContentDescription: String? = null
 ) {
     val spacing = MaterialTheme.spacing
     val iconSizes = MaterialTheme.iconSizes

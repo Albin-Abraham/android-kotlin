@@ -18,13 +18,13 @@ import com.example.myapp.core.ui.surface.SurfaceTier
 @Composable
 fun DetailSlotsScaffold(
     topBarTitle: String,
+    keyDetailsSlot: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
     onBackClick: (() -> Unit)? = null,
     headerSlot: (@Composable () -> Unit)? = null,
     mediaSlot: (@Composable () -> Unit)? = null,
-    keyDetailsSlot: @Composable () -> Unit,
     secondaryContentSlot: (@Composable () -> Unit)? = null,
-    actionSlot: (@Composable () -> Unit)? = null,
-    modifier: Modifier = Modifier
+    actionSlot: (@Composable () -> Unit)? = null
 ) {
     AppScaffold(
         topBar = {

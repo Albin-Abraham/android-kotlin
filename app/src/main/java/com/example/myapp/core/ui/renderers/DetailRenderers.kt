@@ -31,9 +31,9 @@ object DetailRenderers {
     @Composable
     fun HeaderRenderer(
         title: String,
+        modifier: Modifier = Modifier,
         subtitle: String? = null,
-        badgeIcon: ImageVector? = null,
-        modifier: Modifier = Modifier
+        badgeIcon: ImageVector? = null
     ) {
         val spacing = MaterialTheme.spacing
         val iconSizes = MaterialTheme.iconSizes
