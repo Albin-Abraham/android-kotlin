@@ -112,7 +112,16 @@ fun MyAppTheme(
 
     CompositionLocalProvider(
         LocalThemeController provides themeController,
-        LocalSpacing provides Spacing()
+        LocalSpacing provides SpacingTokens(),
+        LocalElevation provides ElevationTokens(),
+        LocalBorders provides BorderTokens(),
+        LocalIconSizes provides IconSizeTokens(),
+        LocalAlpha provides AlphaTokens(),
+        LocalMotion provides MotionTokens(),
+        LocalBreakpoints provides BreakpointTokens(),
+        LocalAccessibility provides AccessibilityTokens(),
+        LocalDensity provides DensityTokens(),
+        LocalStatus provides StatusTokens()
     ) {
         MaterialTheme(
             colorScheme = colorScheme,

@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -28,10 +29,11 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.myapp.core.domain.form.FieldIconType
 import com.example.myapp.core.domain.form.FormFieldDescriptor
+import com.example.myapp.core.ui.theme.spacing
 
 /**
- * Config-driven Material 3 Form Renderer.
- * Interprets pure domain [FormFieldDescriptor] schemas and binds values/errors reactively.
+ * Premium Config-driven Material 3 Form Renderer.
+ * Interprets pure domain [FormFieldDescriptor] schemas with modern container styling.
  */
 @Composable
 fun DynamicForm(
@@ -43,10 +45,12 @@ fun DynamicForm(
     onImeSubmit: (() -> Unit)? = null
 ) {
     val focusManager = LocalFocusManager.current
+    val spacing = MaterialTheme.spacing
+    val inputShape = RoundedCornerShape(14.dp)
 
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(spacing.medium)
     ) {
         fields.forEachIndexed { index, field ->
             val isLastField = index == fields.lastIndex
@@ -101,17 +105,22 @@ fun DynamicForm(
                                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                                     Icon(
                                         imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                                        contentDescription = if (passwordVisible) "Hide password" else "Show password"
+                                        contentDescription = if (passwordVisible) "Hide password" else "Show password",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             }
                         } else null,
                         singleLine = field.maxLines == 1,
                         maxLines = field.maxLines,
-                        shape = MaterialTheme.shapes.large,
+                        shape = inputShape,
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.6f),
+                            focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
+                            unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -141,7 +150,11 @@ fun DynamicForm(
                             }
                         ),
                         singleLine = true,
-                        shape = MaterialTheme.shapes.large,
+                        shape = inputShape,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest
+                        ),
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -151,7 +164,7 @@ fun DynamicForm(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 4.dp),
+                            .padding(vertical = spacing.extraSmall),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -236,7 +249,7 @@ private fun OptInSelectionDropdown(
                     Text(text = error, color = MaterialTheme.colorScheme.error)
                 }
             },
-            shape = MaterialTheme.shapes.large,
+            shape = RoundedCornerShape(14.dp),
             modifier = Modifier
                 .menuAnchor()
                 .fillMaxWidth()

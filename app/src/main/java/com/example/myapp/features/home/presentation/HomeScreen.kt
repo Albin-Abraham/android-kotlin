@@ -7,23 +7,55 @@ import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.myapp.core.ui.layouts.AppBottomBar
+import com.example.myapp.core.ui.layouts.AppScaffold
+import com.example.myapp.core.ui.layouts.AppTopBar
+import com.example.myapp.core.ui.layouts.BottomNavItem
 import com.example.myapp.core.ui.surface.AppSurface
 import com.example.myapp.core.ui.surface.SurfaceTier
+import com.example.myapp.core.ui.theme.spacing
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Production-ready Dashboard screen with foundational design token compliance.
+ */
 @Composable
 fun HomeScreen(
     onSignOut: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Scaffold(
+    val spacing = MaterialTheme.spacing
+    var currentTab by remember { mutableStateOf("dashboard") }
+
+    val navItems = listOf(
+        BottomNavItem(
+            route = "dashboard",
+            title = "Dashboard",
+            icon = Icons.Default.Dashboard
+        ),
+        BottomNavItem(
+            route = "profile",
+            title = "Profile",
+            icon = Icons.Default.Person
+        ),
+        BottomNavItem(
+            route = "settings",
+            title = "Settings",
+            icon = Icons.Default.Settings
+        )
+    )
+
+    AppScaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("Dashboard", style = MaterialTheme.typography.titleLarge) },
+            AppTopBar(
+                title = when (currentTab) {
+                    "profile" -> "My Profile"
+                    "settings" -> "Settings"
+                    else -> "Dashboard"
+                },
                 actions = {
                     IconButton(onClick = onSignOut) {
                         Icon(
@@ -32,21 +64,24 @@ fun HomeScreen(
                             tint = MaterialTheme.colorScheme.error
                         )
                     }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                )
+                }
             )
         },
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+        bottomBar = {
+            AppBottomBar(
+                items = navItems,
+                currentRoute = currentTab,
+                onItemClick = { item -> currentTab = item.route }
+            )
+        },
         modifier = modifier
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(horizontal = spacing.medium, vertical = spacing.medium),
+            verticalArrangement = Arrangement.spacedBy(spacing.medium)
         ) {
             // Welcome Card with M3 High Tier Surface
             AppSurface(
@@ -54,15 +89,15 @@ fun HomeScreen(
                 shape = MaterialTheme.shapes.extraLarge,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.padding(20.dp)) {
+                Column(modifier = Modifier.padding(spacing.large)) {
                     Text(
                         text = "Welcome to Material 3",
                         style = MaterialTheme.typography.headlineSmall,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(spacing.extraSmall))
                     Text(
-                        text = "Your Clean Architecture & Config-Driven UI is up and running.",
+                        text = "Unified AppScaffold with standard AppBar and AppBottom navigation.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -72,7 +107,7 @@ fun HomeScreen(
             // Quick Stats / Tiles Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(spacing.small)
             ) {
                 QuickTile(
                     title = "Features",
@@ -97,7 +132,7 @@ fun HomeScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .padding(spacing.medium),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
@@ -128,14 +163,15 @@ private fun QuickTile(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     modifier: Modifier = Modifier
 ) {
+    val spacing = MaterialTheme.spacing
     AppSurface(
         tier = SurfaceTier.LOW,
         shape = MaterialTheme.shapes.large,
         modifier = modifier
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.padding(spacing.medium),
+            verticalArrangement = Arrangement.spacedBy(spacing.small)
         ) {
             Icon(
                 imageVector = icon,

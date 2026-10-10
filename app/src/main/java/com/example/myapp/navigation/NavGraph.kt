@@ -6,7 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.myapp.features.auth.presentation.ForgotPasswordScreen
-import com.example.myapp.features.auth.presentation.LoginScreen
+import com.example.myapp.features.auth.presentation.LoginRoute
 import com.example.myapp.features.auth.presentation.SignUpScreen
 import com.example.myapp.features.home.presentation.HomeScreen
 
@@ -22,7 +22,7 @@ fun NavGraph(
         modifier = modifier
     ) {
         composable(Screen.Login.route) {
-            LoginScreen(
+            LoginRoute(
                 onLoginSuccess = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }

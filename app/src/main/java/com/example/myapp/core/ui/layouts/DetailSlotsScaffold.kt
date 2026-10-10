@@ -3,9 +3,7 @@ package com.example.myapp.core.ui.layouts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -17,7 +15,6 @@ import com.example.myapp.core.ui.surface.SurfaceTier
  * Standardizes slot-based screen layouts across multiple features with M3 Expressive container hierarchy.
  * Follows GoF Template Method / Slot Pattern.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailSlotsScaffold(
     topBarTitle: String,
@@ -29,23 +26,11 @@ fun DetailSlotsScaffold(
     actionSlot: (@Composable () -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-    Scaffold(
+    AppScaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text(topBarTitle, style = MaterialTheme.typography.titleLarge) },
-                navigationIcon = {
-                    if (onBackClick != null) {
-                        IconButton(onClick = onBackClick) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back"
-                            )
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                )
+            AppTopBar(
+                title = topBarTitle,
+                onBackClick = onBackClick
             )
         },
         bottomBar = {
@@ -67,7 +52,6 @@ fun DetailSlotsScaffold(
                 }
             }
         },
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
         modifier = modifier
     ) { innerPadding ->
         Column(

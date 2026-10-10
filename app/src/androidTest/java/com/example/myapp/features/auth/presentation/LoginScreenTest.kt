@@ -2,12 +2,13 @@ package com.example.myapp.features.auth.presentation
 
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
+import com.example.myapp.core.domain.form.FormFieldDescriptor
 import com.example.myapp.core.ui.theme.MyAppTheme
 import org.junit.Rule
 import org.junit.Test
 
 /**
- * UI State & Accessibility (a11y) Verification Test for LoginScreen.
+ * UI State & Accessibility (a11y) Verification Test for LoginScreen & LoginRoute.
  */
 class LoginScreenTest {
 
@@ -15,10 +16,10 @@ class LoginScreenTest {
     val composeTestRule = createComposeRule()
 
     @Test
-    fun loginScreen_displays_all_accessibility_elements_and_headings() {
+    fun loginRoute_displays_all_accessibility_elements_and_headings() {
         composeTestRule.setContent {
             MyAppTheme {
-                LoginScreen(
+                LoginRoute(
                     onLoginSuccess = {},
                     onNavigateToSignUp = {},
                     onNavigateToForgotPassword = {}
@@ -40,31 +41,38 @@ class LoginScreenTest {
     }
 
     @Test
-    fun loginScreen_shows_validation_error_when_submitted_empty() {
+    fun statelessLoginScreen_renders_loading_and_error_states_directly() {
+        val testSchema = listOf(
+            FormFieldDescriptor.Text(key = "username", label = "Username"),
+            FormFieldDescriptor.Text(key = "password", label = "Password", isPassword = true)
+        )
+
         composeTestRule.setContent {
             MyAppTheme {
                 LoginScreen(
-                    onLoginSuccess = {},
+                    state = AuthUiState(
+                        isLoading = true,
+                        errorMessage = "Invalid credentials provided"
+                    ),
+                    loginSchema = testSchema,
+                    onIntent = {},
                     onNavigateToSignUp = {},
                     onNavigateToForgotPassword = {}
                 )
             }
         }
 
-        // Click Sign In with empty fields
-        composeTestRule.onNodeWithText("Sign In").performClick()
-
-        // Verify validation error text is displayed
-        composeTestRule.onNodeWithText("Username cannot be empty").assertIsDisplayed()
+        // Verify error message is rendered
+        composeTestRule.onNodeWithText("Invalid credentials provided").assertIsDisplayed()
     }
 
     @Test
-    fun loginScreen_successful_input_triggers_success_callback() {
+    fun loginRoute_successful_input_triggers_success_callback() {
         var isSuccess = false
 
         composeTestRule.setContent {
             MyAppTheme {
-                LoginScreen(
+                LoginRoute(
                     onLoginSuccess = { isSuccess = true },
                     onNavigateToSignUp = {},
                     onNavigateToForgotPassword = {}

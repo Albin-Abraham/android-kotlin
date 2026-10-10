@@ -4,16 +4,18 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 enum class AppButtonVariant {
     PRIMARY,
     OUTLINE,
-    GHOST
+    GHOST,
+    TONAL
 }
 
 /**
- * Modern Material 3 Button with built-in Loading State support.
+ * Modern Material 3 Button with built-in Loading State support & executive styling.
  */
 @Composable
 fun AppButton(
@@ -27,17 +29,35 @@ fun AppButton(
 ) {
     val buttonModifier = modifier
         .fillMaxWidth()
-        .height(48.dp)
+        .height(50.dp)
 
     when (variant) {
         AppButtonVariant.PRIMARY -> {
             Button(
                 onClick = onClick,
                 enabled = enabled && !isLoading,
-                shape = MaterialTheme.shapes.medium,
+                shape = MaterialTheme.shapes.large,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                elevation = ButtonDefaults.buttonElevation(
+                    defaultElevation = 2.dp,
+                    pressedElevation = 0.dp
+                ),
+                modifier = buttonModifier
+            ) {
+                ButtonContent(isLoading = isLoading, text = text, leadingIcon = leadingIcon)
+            }
+        }
+        AppButtonVariant.TONAL -> {
+            FilledTonalButton(
+                onClick = onClick,
+                enabled = enabled && !isLoading,
+                shape = MaterialTheme.shapes.large,
+                colors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 ),
                 modifier = buttonModifier
             ) {
@@ -48,7 +68,11 @@ fun AppButton(
             OutlinedButton(
                 onClick = onClick,
                 enabled = enabled && !isLoading,
-                shape = MaterialTheme.shapes.medium,
+                shape = MaterialTheme.shapes.large,
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.primary
+                ),
+                border = ButtonDefaults.outlinedButtonBorder(enabled = enabled && !isLoading),
                 modifier = buttonModifier
             ) {
                 ButtonContent(isLoading = isLoading, text = text, leadingIcon = leadingIcon)
@@ -58,7 +82,7 @@ fun AppButton(
             TextButton(
                 onClick = onClick,
                 enabled = enabled && !isLoading,
-                shape = MaterialTheme.shapes.medium,
+                shape = MaterialTheme.shapes.large,
                 modifier = buttonModifier
             ) {
                 ButtonContent(isLoading = isLoading, text = text, leadingIcon = leadingIcon)
@@ -75,8 +99,8 @@ private fun ButtonContent(
 ) {
     if (isLoading) {
         CircularProgressIndicator(
-            modifier = Modifier.size(20.dp),
-            strokeWidth = 2.dp,
+            modifier = Modifier.size(22.dp),
+            strokeWidth = 2.5.dp,
             color = MaterialTheme.colorScheme.onPrimary
         )
     } else {
@@ -88,7 +112,10 @@ private fun ButtonContent(
                 it()
                 Spacer(modifier = Modifier.width(8.dp))
             }
-            Text(text = text, style = MaterialTheme.typography.labelLarge)
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
+            )
         }
     }
 }
